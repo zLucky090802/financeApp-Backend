@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": ".",                       // 👈 ahora dice que tu código está en la raíz
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true
+  },
+  "include": ["**/*.ts"],                 // 👈 incluye todos los .ts en cualquier subcarpeta
+  "exclude": ["node_modules", "dist"]     // 👈 dist lo excluimos para evitar bucles
+}

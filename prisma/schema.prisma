@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model categorias {
+  id         Int    @id @default(autoincrement())
+  usuario_id Int?
+  nombre     String @db.VarChar(100)
+  tipo       String @db.VarChar(10)
+
+  @@index([usuario_id], map: "usuario_id")
+}
+
+model cuentas {
+  id               Int       @id @default(autoincrement())
+  usuario_id       Int?
+  nombre           String    @db.VarChar(100)
+  tipo             String?   @db.VarChar(50)
+  es_personalizada Boolean?  @default(false)
+  cuenta_base_id   Int?
+  saldo_inicial    Decimal?  @default(0.00) @db.Decimal(12, 2)
+  fecha_creacion   DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([cuenta_base_id], map: "cuenta_base_id")
+  @@index([usuario_id], map: "usuario_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model transacciones {
+  id           Int       @id @default(autoincrement())
+  usuario_id   Int
+  cuenta_id    Int
+  categoria_id Int?
+  tipo         String    @db.VarChar(10)
+  monto        Decimal   @db.Decimal(12, 2)
+  descripcion  String?   @db.Text
+  fecha        DateTime? @default(now()) @db.Timestamp(0)
+
+  @@index([categoria_id], map: "categoria_id")
+  @@index([cuenta_id], map: "cuenta_id")
+  @@index([usuario_id], map: "usuario_id")
+}
+
+model usuarios {
+  id             Int       @id @default(autoincrement())
+  nombre         String    @db.VarChar(100)
+  email          String    @unique(map: "email") @db.VarChar(100)
+  password       String    @db.Text
+  fecha_creacion DateTime? @default(now()) @db.Timestamp(0)
+}
