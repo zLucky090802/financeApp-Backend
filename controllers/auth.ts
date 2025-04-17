@@ -48,7 +48,7 @@ export const loginUsuario = async (req: any, res: any) => {
         where: { email },
       });
 
-      const validPassword = bcrypt.compareSync(password, usuario.password);
+      const validPassword = bcrypt.compareSync(password, usuario!.password);
   
       // Si no se encuentra el usuario
       if (!usuario) {
