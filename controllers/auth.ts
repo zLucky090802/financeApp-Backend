@@ -8,6 +8,7 @@ const prisma = new PrismaClient();
 
 export const crearUsuario = async (req: any, res: any) => {
   const { nombre, email, password } = req.body;
+  console.log(req.body)
 
   // Verificación de los datos
   if (!nombre || !email || !password) {
@@ -37,6 +38,7 @@ export const crearUsuario = async (req: any, res: any) => {
 
 export const loginUsuario = async (req: any, res: any) => {
     const { email, password } = req.body;
+    
   
     // Verifica que venga el email
     if (!email) {
@@ -48,6 +50,7 @@ export const loginUsuario = async (req: any, res: any) => {
       const usuario = await prisma.usuarios.findUnique({
         where: { email },
       });
+      
 
       const validPassword = bcrypt.compareSync(password, usuario!.password);
   
@@ -73,6 +76,7 @@ export const loginUsuario = async (req: any, res: any) => {
           ok:true,
           nombre: usuario.nombre,
           email: usuario.email,
+          id: usuario.id,
           
         },
       });
