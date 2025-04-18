@@ -31,11 +31,31 @@ export const getCuentaById = async (req:any, res: any) => {
   res.json(cuenta);
 };
 
-export const createCuenta = async (req: Request, res: Response) => {
-  const data = req.body;
-  const nuevaCuenta = await prisma.cuentas.create({ data });
-  res.status(201).json(nuevaCuenta);
+export const createCuenta = async (req: any, res: any) => {
+  const { es_personalizada, ...resto } = req.body; 
+
+  const { usuario_id, nombre } = resto;
+
+  // Validación mínima
+  if (!usuario_id || !nombre) {
+    return res.status(400).json({ message: 'Faltan datos requeridos.' });
+  }
+
+  try {
+    const nuevaCuenta = await prisma.cuentas.create({
+      data: {
+        ...resto,
+        es_personalizada: true, 
+      },
+    });
+
+    return res.status(201).json(nuevaCuenta);
+  } catch (error) {
+    console.error('Error al crear la cuenta:', error);
+    return res.status(500).json({ message: 'Error al crear la cuenta.', error });
+  }
 };
+
 
 export const updateCuenta = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
@@ -44,8 +64,33 @@ export const updateCuenta = async (req: Request, res: Response) => {
   res.json(cuenta);
 };
 
-export const deleteCuenta = async (req: Request, res: Response) => {
+export const deleteCuenta = async (req: any, res: any) => {
   const id = Number(req.params.id);
-  await prisma.cuentas.delete({ where: { id } });
-  res.status(204).send();
+
+  // Verificar si el id es un número válido
+  if (isNaN(id)) {
+    return res.status(400).json({ message: 'ID no válido' });
+  }
+
+  try {
+    // Verificar si la cuenta existe antes de intentar eliminarla
+    const cuentaExistente = await prisma.cuentas.findUnique({ where: { id } });
+
+    if (!cuentaExistente) {
+      return res.status(404).json({ message: 'Cuenta no encontrada' });
+    }
+
+    // Eliminar la cuenta si existe
+    await prisma.cuentas.delete({ where: { id } });
+
+    // Responder con un mensaje de éxito
+    res.status(200).json({
+      ok: true,
+      msg: 'Cuenta eliminada',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al eliminar la cuenta', error });
+  }
 };
+
