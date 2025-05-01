@@ -9,7 +9,7 @@ import {
 
 const router = Router();
 
-router.get("/", getCategorias);
+router.get("/usuario/:usuario_id", getCategorias);
 router.get("/:id", getCategoriaById);
 router.post("/", createCategoria);
 router.put("/:id", updateCategoria);

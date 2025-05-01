@@ -93,4 +93,56 @@ export const deleteCuenta = async (req: any, res: any) => {
     return res.status(500).json({ message: 'Error al eliminar la cuenta', error });
   }
 };
+export const getBalanceCuentaById = async (req: any, res: any) => {
+  const { usuario_id, cuenta_id } = req.params;
 
+  if (!usuario_id || !cuenta_id) {
+    return res.status(400).json({ message: 'Usuario ID y Cuenta ID son requeridos' });
+  }
+
+  try {
+    // Primero verificamos si la cuenta existe y pertenece al usuario
+    const cuenta = await prisma.cuentas.findFirst({
+      where: {
+        id: Number(cuenta_id),
+        usuario_id: Number(usuario_id),
+      },
+    });
+
+    if (!cuenta) {
+      return res.status(404).json({ message: 'Cuenta no encontrada para este usuario' });
+    }
+
+    // Luego buscamos los movimientos
+    const movimientos = await prisma.transacciones.findMany({
+      where: {
+        cuenta_id: Number(cuenta_id),
+        usuario_id: Number(usuario_id),
+      },
+      select: {
+        tipo: true,
+        monto: true,
+      },
+    });
+
+    // Si no hay movimientos, balance es 0
+    const balance = movimientos.reduce((acc, mov) => {
+      if (mov.tipo === 'ingreso') {
+        return acc + Number(mov.monto);
+      } else if (mov.tipo === 'gasto') {
+        return acc - Number(mov.monto);
+      } else {
+        return acc;
+      }
+    }, 0);
+
+    return res.status(200).json({
+      usuarioId: Number(usuario_id),
+      cuentaId: Number(cuenta_id),
+      balance: balance, // 0 si no hay movimientos
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al calcular el balance de la cuenta personalizada' });
+  }
+};

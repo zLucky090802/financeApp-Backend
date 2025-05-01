@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+
+
 // Crear una transacción
 export const crearTransaccion:RequestHandler = async (req:any, res:any) => {
   const { usuario_id, cuenta_id, categoria_id, tipo, monto, descripcion, fecha } = req.body;
@@ -44,6 +46,8 @@ export const obtenerTransaccionesPorUsuario:RequestHandler = async (req: any, re
       where: { usuario_id: Number(usuario_id) },
       orderBy: { fecha: 'desc' },
     });
+
+    console.log(transacciones)
 
     return res.status(200).json({ transacciones });
   } catch (error) {
@@ -103,3 +107,35 @@ export const actualizarTransaccion: RequestHandler = async (req: any, res: any) 
   }
 };
 
+export const getBalance: RequestHandler = async (req: any, res: any) => {
+  const { usuario_id } = req.params;
+
+  try {
+    const transacciones = await prisma.transacciones.findMany({
+      where: { usuario_id: Number(usuario_id) },
+    });
+
+    let ingresos = 0;
+    let gastos = 0;
+
+    transacciones.forEach((t) => {
+      const monto = Number(t.monto);
+      if (t.tipo === 'ingreso') {
+        ingresos += monto;
+      } else if (t.tipo === 'gasto') {
+        gastos += monto;
+      }
+    });
+
+    const balance = ingresos - gastos;
+
+    return res.status(200).json({
+      ingresos,
+      gastos,
+      balance,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al calcular el balance.', error });
+  }
+};

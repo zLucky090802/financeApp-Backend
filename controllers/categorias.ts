@@ -1,10 +1,22 @@
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 
-export const getCategorias = async (req:any, res:any) => {
-  const categorias = await prisma.categorias.findMany()
-  res.json(categorias)
-}
+export const getCategorias = async (req: any, res: any) => {
+  const { usuario_id } = req.params;
+
+  if (!usuario_id) {
+    return res.status(400).json({ error: "usuario_id es requerido" });
+  }
+
+  const categorias = await prisma.categorias.findMany({
+    where: {
+      usuario_id: Number(usuario_id),
+    },
+  });
+
+  res.json(categorias);
+};
+
 
 export const getCategoriaById = async (req:any, res:any) => {
   const { id } = req.params
