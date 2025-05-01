@@ -106,18 +106,30 @@ export const actualizarTransaccion: RequestHandler = async (req: any, res: any) 
     return res.status(500).json({ message: 'Error al actualizar la transacción.', error });
   }
 };
-
 export const getBalance: RequestHandler = async (req: any, res: any) => {
   const { usuario_id } = req.params;
 
   try {
+    // Obtener transacciones del usuario
     const transacciones = await prisma.transacciones.findMany({
       where: { usuario_id: Number(usuario_id) },
     });
 
-    let ingresos = 0;
+    // Obtener cuentas del usuario para calcular saldo inicial total
+    const cuentas = await prisma.cuentas.findMany({
+      where: { usuario_id: Number(usuario_id) },
+      select: { saldo_inicial: true },
+    });
+
+    // Sumar saldos iniciales
+    const saldoInicialTotal = cuentas.reduce((acc, cuenta) => {
+      return acc + Number(cuenta.saldo_inicial ?? 0);
+    }, 0);
+
+    let ingresos = saldoInicialTotal; // Empieza con saldo inicial total
     let gastos = 0;
 
+    // Sumar ingresos y gastos de transacciones
     transacciones.forEach((t) => {
       const monto = Number(t.monto);
       if (t.tipo === 'ingreso') {
@@ -133,6 +145,7 @@ export const getBalance: RequestHandler = async (req: any, res: any) => {
       ingresos,
       gastos,
       balance,
+      saldoInicialTotal, // También lo devuelvo por si lo necesitas mostrar
     });
   } catch (error) {
     console.error(error);
