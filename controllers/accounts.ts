@@ -125,8 +125,8 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       },
     });
 
-    // Si no hay movimientos, balance es 0
-    const balance = movimientos.reduce((acc, mov) => {
+    // Calculamos el balance sumando ingresos, restando gastos y agregando saldo_inicial
+    const balanceTransacciones = movimientos.reduce((acc, mov) => {
       if (mov.tipo === 'ingreso') {
         return acc + Number(mov.monto);
       } else if (mov.tipo === 'gasto') {
@@ -136,10 +136,15 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       }
     }, 0);
 
+    const saldoInicial = cuenta.saldo_inicial ? Number(cuenta.saldo_inicial) : 0;
+    const balanceTotal = saldoInicial + balanceTransacciones;
+
     return res.status(200).json({
       usuarioId: Number(usuario_id),
       cuentaId: Number(cuenta_id),
-      balance: balance, // 0 si no hay movimientos
+      saldoInicial,
+      balanceTransacciones,
+      balanceTotal,
     });
   } catch (error) {
     console.error(error);
