@@ -12,7 +12,6 @@ model categorias {
   id         Int    @id @default(autoincrement())
   usuario_id Int?
   nombre     String @db.VarChar(100)
-  tipo       String @db.VarChar(10)
 
   @@index([usuario_id], map: "usuario_id")
 }
@@ -26,6 +25,7 @@ model cuentas {
   cuenta_base_id   Int?
   saldo_inicial    Decimal?  @default(0.00) @db.Decimal(12, 2)
   fecha_creacion   DateTime? @default(now()) @db.Timestamp(0)
+  descripcion      String?   @db.Text
 
   @@index([cuenta_base_id], map: "cuenta_base_id")
   @@index([usuario_id], map: "usuario_id")

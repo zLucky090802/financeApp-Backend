@@ -23,24 +23,40 @@ export const getCategoriaById = async (req:any, res:any) => {
   const categoria = await prisma.categorias.findUnique({ where: { id: parseInt(id) } })
   categoria ? res.json(categoria) : res.status(404).json({ error: 'No encontrada' })
 }
+export const createCategoria = async (req: any, res: any) => {
+  const { usuario_id, nombre } = req.body;
 
-export const createCategoria = async (req:any, res:any) => {
-  const { usuario_id, nombre, tipo } = req.body
-  const nuevaCategoria = await prisma.categorias.create({
-    data: { usuario_id, nombre, tipo }
-  })
-  res.status(201).json(nuevaCategoria)
-}
+  if (!nombre) {
+    return res.status(400).json({ error: "El nombre es requerido" });
+  }
 
-export const updateCategoria = async (req:any, res:any) => {
-  const { id } = req.params
-  const { usuario_id, nombre, tipo } = req.body
-  const categoria = await prisma.categorias.update({
-    where: { id: parseInt(id) },
-    data: { usuario_id, nombre, tipo }
-  })
-  res.json(categoria)
-}
+  try {
+    const nuevaCategoria = await prisma.categorias.create({
+      data: { usuario_id, nombre }, 
+    });
+    res.status(201).json(nuevaCategoria);
+  } catch (error) {
+    console.error("Error al crear categoría:", error);
+    res.status(500).json({ error: "Error interno al crear la categoría" });
+  }
+};
+
+export const updateCategoria = async (req: any, res: any) => {
+  const { id } = req.params;
+  const { usuario_id, nombre } = req.body;
+
+  try {
+    const categoria = await prisma.categorias.update({
+      where: { id: parseInt(id) },
+      data: { usuario_id, nombre },
+    });
+    res.json(categoria);
+  } catch (error) {
+    console.error("Error al actualizar categoría:", error);
+    res.status(500).json({ error: "Error interno al actualizar la categoría" });
+  }
+};
+
 
 export const deleteCategoria = async (req:any, res:any) => {
   const { id } = req.params
