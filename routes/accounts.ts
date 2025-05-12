@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as controller from '../controllers/accounts';
+import { verificarToken } from '../middlewares/authMiddleware';
 
 const router = Router();
 
@@ -11,7 +12,8 @@ router.get('/personalizadas/:usuario_id', controller.getCuentasPersonalizadas);
 router.get('/:id', controller.getCuentaById);
 router.post('/', controller.createCuenta);
 router.put('/:id', controller.updateCuenta);
-router.delete('/:id', controller.deleteCuenta);
+router.delete('/:id/:usuario_id', controller.deleteCuenta);
+
 router.get('/balance/:usuario_id/:cuenta_id', controller.getBalanceCuentaById);
 
 

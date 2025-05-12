@@ -1,3 +1,4 @@
+import { AuthRequest } from '../middlewares/authMiddleware';
 import { Request, Response } from 'express';
 
 import { PrismaClient } from '@prisma/client';
@@ -64,35 +65,44 @@ export const updateCuenta = async (req: Request, res: Response) => {
   res.json(cuenta);
 };
 
-export const deleteCuenta = async (req: any, res: any) => {
-  const id = Number(req.params.id);
+export const deleteCuenta = async (req: AuthRequest, res: any) => {
+  const cuentaId = Number(req.params.id);
+  const usuarioId = Number(req.params.usuario_id);
+  console.log(cuentaId)
 
-  // Verificar si el id es un número válido
-  if (isNaN(id)) {
-    return res.status(400).json({ message: 'ID no válido' });
+  if (isNaN(cuentaId) || !usuarioId) {
+    return res.status(400).json({ message: 'ID(s) no válidos' });
   }
 
   try {
-    // Verificar si la cuenta existe antes de intentar eliminarla
-    const cuentaExistente = await prisma.cuentas.findUnique({ where: { id } });
+    const cuentaExistente = await prisma.cuentas.findFirst({
+      where: {
+        id: Number(cuentaId),
+        usuario_id: Number(usuarioId),
+      },
+    });
+
+   
 
     if (!cuentaExistente) {
       return res.status(404).json({ message: 'Cuenta no encontrada' });
     }
 
-    // Eliminar la cuenta si existe
-    await prisma.cuentas.delete({ where: { id } });
+    await prisma.transacciones.deleteMany({ where: { cuenta_id: cuentaId } });
 
-    // Responder con un mensaje de éxito
-    res.status(200).json({
-      ok: true,
-      msg: 'Cuenta eliminada',
-    });
+    await prisma.cuentas.delete({ where: { id: cuentaId } });
+
+    res.status(200).json({ ok: true, msg: 'Cuenta eliminada' });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Error al eliminar la cuenta', error });
+    console.error('Error al eliminar la cuenta:', error);
+    res.status(500).json({
+      message: 'Error al eliminar la cuenta',
+      error: error instanceof Error ? error.message : error,
+    });
   }
 };
+
+
 export const getBalanceCuentaById = async (req: any, res: any) => {
   const { usuario_id, cuenta_id } = req.params;
 
