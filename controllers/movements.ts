@@ -154,7 +154,7 @@ export const getBalance: RequestHandler = async (req: any, res: any) => {
 };
 
 // Obtener una transacción individual por su ID
-export const obtenerTransaccionPorId: RequestHandler = async (req: any, res: any) => {
+export const getMovementsById: RequestHandler = async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
