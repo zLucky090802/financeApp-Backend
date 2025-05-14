@@ -8,7 +8,7 @@ router.get('/:usuario_id', obtenerTransaccionesPorUsuario);
 router.put('/:id', actualizarTransaccion);
 router.delete('/:id', eliminarTransaccion);
 router.get('/balance/:usuario_id', getBalance);
-router.get('/transaccion/:id', getMovementsById);
+router.get('/movement/:id', getMovementsById);
 
 
 export default router;
