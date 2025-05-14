@@ -152,3 +152,23 @@ export const getBalance: RequestHandler = async (req: any, res: any) => {
     return res.status(500).json({ message: 'Error al calcular el balance.', error });
   }
 };
+
+// Obtener una transacción individual por su ID
+export const obtenerTransaccionPorId: RequestHandler = async (req: any, res: any) => {
+  const { id } = req.params;
+
+  try {
+    const transaccion = await prisma.transacciones.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!transaccion) {
+      return res.status(404).json({ message: 'Transacción no encontrada.' });
+    }
+
+    return res.status(200).json({ transaccion });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al obtener la transacción.', error });
+  }
+};
