@@ -154,7 +154,7 @@ export const getBalance: RequestHandler = async (req: any, res: any) => {
 };
 
 // Obtener una transacción individual por su ID
-export const getMovementsById: RequestHandler = async (req: any, res: any) => {
+export const getMovementById: RequestHandler = async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -170,5 +170,39 @@ export const getMovementsById: RequestHandler = async (req: any, res: any) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Error al obtener la transacción.', error });
+  }
+};
+
+export const getMovementByAccountName: RequestHandler = async (req: any, res: any) => {
+  const { usuario_id, nombre_cuenta } = req.params;
+
+  try {
+    // Buscar la cuenta personalizada con ese nombre y usuario
+    const cuenta = await prisma.cuentas.findFirst({
+      where: {
+        usuario_id: Number(usuario_id),
+        nombre: nombre_cuenta,
+        es_personalizada: true,
+      },
+    });
+
+    if (!cuenta) {
+      return res.status(404).json({ message: 'Cuenta personalizada no encontrada.' });
+    }
+
+    // Obtener transacciones de esa cuenta
+    const transacciones = await prisma.transacciones.findMany({
+      where: {
+        cuenta_id: cuenta.id,
+      },
+      orderBy: {
+        fecha: 'desc',
+      },
+    });
+
+    return res.status(200).json({ transacciones });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Error al obtener transacciones por nombre de cuenta.', error });
   }
 };
