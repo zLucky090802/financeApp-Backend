@@ -102,7 +102,6 @@ export const deleteCuenta = async (req: AuthRequest, res: any) => {
   }
 };
 
-
 export const getBalanceCuentaById = async (req: any, res: any) => {
   const { usuario_id, cuenta_id } = req.params;
 
@@ -111,7 +110,7 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
   }
 
   try {
-    // Primero verificamos si la cuenta existe y pertenece al usuario
+    // Verificar si la cuenta existe y pertenece al usuario
     const cuenta = await prisma.cuentas.findFirst({
       where: {
         id: Number(cuenta_id),
@@ -123,7 +122,7 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       return res.status(404).json({ message: 'Cuenta no encontrada para este usuario' });
     }
 
-    // Luego buscamos los movimientos
+    // Obtener movimientos
     const movimientos = await prisma.transacciones.findMany({
       where: {
         cuenta_id: Number(cuenta_id),
@@ -135,17 +134,20 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       },
     });
 
-    // Calculamos el balance sumando ingresos, restando gastos y agregando saldo_inicial
-    const balanceTransacciones = movimientos.reduce((acc, mov) => {
-      if (mov.tipo === 'ingreso') {
-        return acc + Number(mov.monto);
-      } else if (mov.tipo === 'gasto') {
-        return acc - Number(mov.monto);
-      } else {
-        return acc;
-      }
-    }, 0);
+    // Cálculos
+    let totalIngresos = 0;
+    let totalGastos = 0;
 
+    movimientos.forEach((mov) => {
+      const monto = Number(mov.monto);
+      if (mov.tipo === 'ingreso') {
+        totalIngresos += monto;
+      } else if (mov.tipo === 'gasto') {
+        totalGastos += monto;
+      }
+    });
+
+    const balanceTransacciones = totalIngresos - totalGastos;
     const saldoInicial = cuenta.saldo_inicial ? Number(cuenta.saldo_inicial) : 0;
     const balanceTotal = saldoInicial + balanceTransacciones;
 
@@ -153,6 +155,8 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       usuarioId: Number(usuario_id),
       cuentaId: Number(cuenta_id),
       saldoInicial,
+      totalIngresos,
+      totalGastos,
       balanceTransacciones,
       balanceTotal,
     });
