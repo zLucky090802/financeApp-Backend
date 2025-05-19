@@ -101,7 +101,6 @@ export const deleteCuenta = async (req: AuthRequest, res: any) => {
     });
   }
 };
-
 export const getBalanceCuentaById = async (req: any, res: any) => {
   const { usuario_id, cuenta_id } = req.params;
 
@@ -110,7 +109,6 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
   }
 
   try {
-    // Verificar si la cuenta existe y pertenece al usuario
     const cuenta = await prisma.cuentas.findFirst({
       where: {
         id: Number(cuenta_id),
@@ -122,7 +120,6 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       return res.status(404).json({ message: 'Cuenta no encontrada para este usuario' });
     }
 
-    // Obtener movimientos
     const movimientos = await prisma.transacciones.findMany({
       where: {
         cuenta_id: Number(cuenta_id),
@@ -134,7 +131,6 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       },
     });
 
-    // Cálculos
     let totalIngresos = 0;
     let totalGastos = 0;
 
@@ -147,9 +143,11 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       }
     });
 
-    const balanceTransacciones = totalIngresos - totalGastos;
     const saldoInicial = cuenta.saldo_inicial ? Number(cuenta.saldo_inicial) : 0;
+    const balanceTransacciones = totalIngresos - totalGastos;
     const balanceTotal = saldoInicial + balanceTransacciones;
+
+    const capitalTotal = saldoInicial + totalIngresos; // ✅ suma que pediste
 
     return res.status(200).json({
       usuarioId: Number(usuario_id),
@@ -157,6 +155,7 @@ export const getBalanceCuentaById = async (req: any, res: any) => {
       saldoInicial,
       totalIngresos,
       totalGastos,
+      capitalTotal,          // ✅ nueva variable
       balanceTransacciones,
       balanceTotal,
     });
