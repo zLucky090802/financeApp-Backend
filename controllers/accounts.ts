@@ -58,13 +58,66 @@ export const createCuenta = async (req: any, res: any) => {
 };
 
 
-export const updateCuenta = async (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const data = req.body;
-  const cuenta = await prisma.cuentas.update({ where: { id }, data });
-  res.json(cuenta);
-};
+export const updateCuenta = async(req: any, res: any) => {
+  try {
+    const id = Number(req.params.id);
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'ID de cuenta inválido' });
+    }
 
+    const cuentaExistente = await prisma.cuentas.findUnique({ where: { id } });
+    if (!cuentaExistente) {
+      return res.status(404).json({ error: 'Cuenta no encontrada' });
+    }
+
+    const {
+      nombre,
+      tipo,
+      saldo_inicial,
+      cuenta_base_id,
+      descripcion,
+    } = req.body;
+
+    // Validaciones básicas
+    if (nombre !== undefined && typeof nombre !== 'string') {
+      return res.status(400).json({ error: '`nombre` debe ser una cadena' });
+    }
+
+   
+
+    if (saldo_inicial !== undefined && isNaN(Number(saldo_inicial))) {
+      return res.status(400).json({ error: '`saldo_inicial` debe ser un número' });
+    }
+
+    if (cuenta_base_id !== undefined && cuenta_base_id !== null && isNaN(Number(cuenta_base_id))) {
+      return res.status(400).json({ error: '`cuenta_base_id` debe ser numérico' });
+    }
+
+
+    // Armar objeto con solo los campos válidos que se recibieron
+    const dataToUpdate: any = {};
+    if (nombre !== undefined) dataToUpdate.nombre = nombre;
+    
+    if (saldo_inicial !== undefined) dataToUpdate.saldo_inicial = Number(saldo_inicial);
+    if (cuenta_base_id !== undefined) dataToUpdate.cuenta_base_id = cuenta_base_id;
+   
+
+    // Si no hay campos para actualizar, retorna error
+    if (Object.keys(dataToUpdate).length === 0) {
+      return res.status(400).json({ error: 'No se proporcionaron campos válidos para actualizar' });
+    }
+
+    const cuentaActualizada = await prisma.cuentas.update({
+      where: { id },
+      data: dataToUpdate,
+    });
+
+    return res.status(200).json(cuentaActualizada);
+  } catch (error) {
+    console.error('Error al actualizar la cuenta:', error);
+    return res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
 export const deleteCuenta = async (req: AuthRequest, res: any) => {
   const cuentaId = Number(req.params.id);
   const usuarioId = Number(req.params.usuario_id);
